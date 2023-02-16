@@ -25,6 +25,16 @@ RectangleShape paddles[2];
 
 void Load() {
 
+    //Code for adding score text *INCOMPLETE*
+    /*
+    // Load font-face from res dir
+    font.loadFromFile("res/fonts/RobotoMono-Regular.ttf");
+    // Set text element to use font
+    text.setFont(font);
+    // set the character size to 24 pixels
+    text.setCharacterSize(24);
+    */
+
     ballVelocity = { (server ? 100.0f : -100.0f), 60.0f };
 
     //Set size and origin of paddles
@@ -39,12 +49,26 @@ void Load() {
         paddles[0].setPosition(Vector2(padding + paddleSize.x / 2.f, gameHeight / 2.f));
         paddles[1].setPosition(Vector2(gameWidth - padding - paddleSize.x / 2.f, gameHeight / 2.f));
     //reset ball position 
-        ball.setPosition({400,300});
+        ball.setPosition(Vector2(gameWidth / 2.f, gameHeight / 2.f));
 }
 
 void Reset() {
+    // reset paddle position
+    paddles[0].setPosition(Vector2(10.f + paddleSize.x / 2.f, gameHeight / 2.f));
+    paddles[1].setPosition(Vector2(gameWidth - (10.0f + paddleSize.x / 2.f), gameHeight / 2.f));
+    // reset Ball Position
+    ball.setPosition(Vector2(gameWidth / 2.f, gameHeight / 2.f));
 
+    ballVelocity = { (server ? 100.0f : -100.0f), 60.0f };
+
+    //Code for adding score text *INCOMPLETE*
+    /*
+    // Update Score Text
+    text.setString(...);
+    // Keep Score Text Centered
+    text.setPosition((gameWidth * .5f) - (text.getLocalBounds().width * .5f), 0);*/
 }
+
 void Update(RenderWindow& window) {
     //Reset clock and calc deltaTime
     static Clock clock;
@@ -64,6 +88,7 @@ void Update(RenderWindow& window) {
     }
 
     //Handle paddle movement
+    //Left paddle
     float direction = 0.0f;
     if (Keyboard::isKeyPressed(controls[0])) {
         direction--;
@@ -73,7 +98,15 @@ void Update(RenderWindow& window) {
     }
         paddles[0].move(Vector2(0.f, direction * paddleSpeed * dt));
 
-        ball.move(ballVelocity * dt);
+        //Right paddle
+        direction = 0.0f;
+        if (Keyboard::isKeyPressed(controls[2])) {
+            direction--;
+        }
+        if (Keyboard::isKeyPressed(controls[3])) {
+            direction++;
+        }
+        paddles[1].move(Vector2(0.f, direction * paddleSpeed * dt));
 
         // check ball collision
         const float bx = ball.getPosition().x;
@@ -88,8 +121,47 @@ void Update(RenderWindow& window) {
        // top wall
             ballVelocity.x *= 1.1f;
             ballVelocity.y *= -1.1f;
-            ball.move(Vector2(0.f, -10.f));
+            ball.move(Vector2(0.f, 10.f));
         }
+
+    else if (bx > gameWidth) {
+    // right wall
+    Reset();
+    }
+
+    else if (bx < 0) {
+    // left wall
+    Reset();
+    }
+
+    else if (
+    //ball is inline or behind paddle
+    bx < paddleSize.x &&
+    //AND ball is below top edge of paddle
+    by > paddles[0].getPosition().y - (paddleSize.y * 0.5) &&
+    //AND ball is above bottom edge of paddle
+    by < paddles[0].getPosition().y + (paddleSize.y * 0.5)
+    ) {
+    // bounce off left paddle
+    ballVelocity.x *= -1.1f;
+    ballVelocity.y *= 1.1f;
+    ball.move(Vector2(10.f, 0.f));
+    }
+
+    else if (//ball is inline or behind paddle
+    bx > (gameWidth - (paddleSize.x) * 2) &&
+    //AND ball is below top edge of paddle
+    by > paddles[1].getPosition().y - (paddleSize.y * 0.5) &&
+    //AND ball is above bottom edge of paddle
+    by < paddles[1].getPosition().y + (paddleSize.y * 0.5)
+    ) {
+    // bounce off right paddle
+    ballVelocity.x *= -1.1f;
+    ballVelocity.y *= 1.1f;
+    ball.move(Vector2(-10.f, 0.f));
+    }
+
+        ball.move(ballVelocity * dt);
 }
 
 void Render(RenderWindow& window) {
