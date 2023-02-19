@@ -15,9 +15,35 @@ SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIRECTORY})
 add_subdirectory("lib/sfml")
 set(SFML_INCS "lib/sfml/include")
 link_directories("${CMAKE_BINARY_DIR}/lib/sfml/lib")
+add_custom_target(copy_resources ALL COMMAND ${CMAKE_COMMAND} 
+  -E copy_directory
+    "${PROJECT_SOURCE_DIR}/res"
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIGURATION>/res
+)
+
+## DLLs
+function (copy_sfml_dll MyTarget )
+add_custom_command(TARGET ${MyTarget} POST_BUILD        # Adds a post-build event to MyTest
+    COMMAND ${CMAKE_COMMAND} -E copy_directory  # which executes "cmake - E copy_if_different..."
+        "${CMAKE_BINARY_DIR}/lib/sfml/bin/$<CONFIGURATION>"      # <--this is in-file
+        $<TARGET_FILE_DIR:${MyTarget}>)                 # <--this is out-file path
+endfunction()
 
 #### Practical 1 ####
 file(GLOB_RECURSE SOURCES practical_1/*.cpp practical_1/*.h)
 add_executable(PRACTICAL_1 ${SOURCES})
 target_include_directories(PRACTICAL_1 PRIVATE ${SFML_INCS})
 target_link_libraries(PRACTICAL_1 sfml-graphics)
+copy_sfml_dll(PRACTICAL_1)
+
+#### Space invaders ####
+file(GLOB_RECURSE SOURCES practical_2/*.cpp practical_2/*.h)
+add_executable(2_INVADERS ${SOURCES} )
+target_include_directories(2_INVADERS SYSTEM PRIVATE ${SFML_INCS})
+target_link_libraries(2_INVADERS sfml-graphics)
+copy_sfml_dll(2_INVADERS)
+set_target_properties(2_INVADERS 
+    PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(Configuration)
+)
+add_dependencies (2_INVADERS copy_resources)
