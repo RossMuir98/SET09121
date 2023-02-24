@@ -47,3 +47,15 @@ set_target_properties(2_INVADERS
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(Configuration)
 )
 add_dependencies (2_INVADERS copy_resources)
+
+#### Tile Engine ####
+file(GLOB_RECURSE SOURCES practical_3/*.cpp practical_3/*.h)
+add_executable(3_TILES ${SOURCES} )
+target_include_directories(3_TILES SYSTEM PRIVATE ${SFML_INCS})
+target_link_libraries(3_TILES sfml-graphics)
+copy_sfml_dll(3_TILES)
+set_target_properties(3_TILES 
+    PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY
+    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(Configuration)
+)
+add_dependencies (3_TILES copy_resources)
